@@ -9,7 +9,6 @@
 
     <!-- ══ RESUMEN ════════════════════════════════════════════════════════════ -->
     <div v-else class="card">
-
         <!-- Header con totales destacados -->
         <div style="padding:20px 20px 16px; border-bottom:1px solid var(--border-soft);
                     display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
@@ -32,12 +31,14 @@
                     <span style="color:var(--text-muted);">fee</span>
                     <strong>{{ fm(store.feeMensual) }}</strong>
                 </span>
+
                 <span class="stat-badge">
                     <span style="color:var(--text-muted);">/día</span>
                     <strong style="color:var(--accent);">{{ fm(store.valorPorHora) }}</strong>
                 </span>
             </div>
         </div>
+        
 
         <!-- Tabla -->
         <div style="overflow-x:auto;">
