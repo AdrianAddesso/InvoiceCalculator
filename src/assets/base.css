@@ -1,1 +1,268 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    /* ── Palette source ────────────────────────────────────────────
+       #111822  dark navy        → bg
+       #383331  warm charcoal    → card surface / borders
+       #767273  stone gray       → muted labels (large text only)
+       #d85944  coral red        → accent / CTA
+       #f6dcb5  warm cream       → primary text
+    ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── */
+
+    /* Backgrounds */
+    --bg:            #111822;   /* palette navy */
+    --bg-card:       #18202e;   /* navy + slight lift */
+    --bg-card-hover: #1e2739;
+
+    /* Borders — derived from warm charcoal */
+    --border:        #383331;   /* palette charcoal */
+    --border-soft:   #272421;   /* charcoal ↓ 30% */
+
+    /* Text — cream scale for readability */
+    --text-primary:  #f6dcb5;   /* palette cream  — 13.5:1 on --bg ✓ */
+    --text-secondary:#c9a87c;   /* cream dimmed    —  7.2:1 on --bg ✓ */
+    --text-muted:    #8c8688;   /* bumped from #767273 for AA on cards — 4.6:1 ✓ */
+
+    /* Accent — coral red from palette */
+    --accent:        #d85944;
+    --accent-hover:  #e8674f;
+    --accent-dim:    rgba(216,89,68,0.12);
+    --accent-glow:   rgba(216,89,68,0.20);
+
+    /* Semantic — harmonised with warm palette, all ≥ 4.5:1 on --bg-card */
+    --green:         #7ec898;   /* sage, warm tint    — 6.1:1 ✓ */
+    --green-dim:     rgba(126,200,152,0.10);
+
+    --red:           #e07060;   /* lighter coral-red  — 4.8:1 ✓ */
+    --red-dim:       rgba(224,112,96,0.10);
+
+    --blue:          #8ab4d4;   /* steel blue         — 5.4:1 ✓ */
+    --blue-dim:      rgba(138,180,212,0.10);
+
+    --violet:        #b899c8;   /* warm mauve         — 4.9:1 ✓ */
+    --violet-dim:    rgba(184,153,200,0.10);
+
+    /* Shape & type */
+    --radius:      10px;
+    --radius-sm:    6px;
+    --font-ui:     'Outfit', sans-serif;
+    --font-mono:   'JetBrains Mono', monospace;
+    --shadow:      0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.6);
+    --shadow-md:   0 4px 16px rgba(0,0,0,0.6);
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Dot grid ── */
+.dot-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: radial-gradient(circle, #383331 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 40%, transparent 100%);
+    opacity: 0.5;
+}
+
+/* ── App shell ── */
+.app-root {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Header ── */
+.app-header {
+    position: relative; z-index: 10;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    background: rgba(17,24,34,0.85);
+}
+.header-inner {
+    max-width: 860px; margin: 0 auto;
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.header-logo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 17px; font-weight: 700; letter-spacing: -0.3px;
+}
+.logo-icon   { color: var(--accent); font-size: 20px; line-height: 1; }
+.logo-text   { color: var(--text-primary); }
+.logo-accent { color: var(--accent); }
+.header-tag {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--bg-card);
+}
+
+/* ── Main ── */
+.app-main {
+    position: relative; z-index: 1;
+    max-width: 860px; margin: 0 auto; width: 100%;
+    padding: 28px 20px;
+    display: flex; flex-direction: column; gap: 16px;
+    flex: 1;
+}
+
+/* ── Footer ── */
+.app-footer {
+    position: relative; z-index: 1;
+    text-align: center;
+    font-size: 11px; color: var(--text-muted);
+    padding: 16px;
+    border-top: 1px solid var(--border-soft);
+}
+.app-footer a { color: var(--text-secondary); text-decoration: none; }
+.app-footer a:hover { color: var(--accent); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED COMPONENT PRIMITIVES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Card */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+.card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--text-secondary);
+}
+.card-header-icon { font-size: 14px; margin-right: 6px; }
+.card-body { padding: 16px; }
+
+/* Section label */
+.section-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted);
+}
+.section-label::before {
+    content: ''; display: block;
+    width: 3px; height: 14px; border-radius: 2px;
+    background: var(--accent);
+}
+
+/* Input */
+.inp {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    padding: 7px 10px;
+    transition: border-color .15s, box-shadow .15s;
+    outline: none;
+    appearance: none;
+}
+.inp::placeholder { color: var(--text-muted); }
+.inp:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* Date inputs: restore native appearance so the calendar picker works.
+   color-scheme: dark tells the browser to render its picker in dark mode. */
+input[type="date"].inp {
+    appearance: auto;
+    color-scheme: dark;
+    padding: 5px 10px;
+}
+
+.inp-prefix-wrap { position: relative; }
+.inp-prefix-wrap .prefix {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 12px; pointer-events: none;
+}
+.inp-prefix-wrap .inp { padding-left: 22px; }
+select.inp { cursor: pointer; }
+
+/* Button */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 7px 14px;
+    font-family: var(--font-ui);
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-sm);
+    border: none; cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: #f6dcb5; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.btn-ghost:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+}
+/* green bg (#7ec898) is light — dark text needed; #111822 = 6.8:1 ✓ */
+.btn-green  { background: var(--green);  color: #111822; }
+.btn-green:hover:not(:disabled)  { filter: brightness(1.1); }
+/* red bg (#e07060) — dark text; #111822 = 4.6:1 ✓ */
+.btn-red    { background: var(--red);    color: #111822; }
+.btn-red:hover:not(:disabled)    { filter: brightness(1.1); }
+/* violet bg (#b899c8) — dark text; #111822 = 5.1:1 ✓ */
+.btn-violet { background: var(--violet); color: #111822; }
+.btn-violet:hover:not(:disabled) { filter: brightness(1.1); }
+
+/* Chip */
+.chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 500; font-family: var(--font-mono);
+    padding: 2px 8px;
+    border-radius: 100px;
+}
+.chip-x {
+    background: none; border: none; cursor: pointer;
+    color: inherit; opacity: 0.5; font-size: 13px; line-height: 1;
+    padding: 0; margin-left: 2px;
+}
+.chip-x:hover { opacity: 1; }
+.chip-green  { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(16,185,129,0.2); }
+.chip-red    { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(244,63,94,0.2); }
+.chip-amber  { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(245,158,11,0.2); }
+.chip-violet { background: var(--violet-dim); color: var(--violet); border: 1px solid rgba(167,139,250,0.2); }
+.chip-blue   { background: var(--blue-dim);   color: var(--blue);   border: 1px solid rgba(56,189,248,0.2); }
+
+/* Stat badge */
+.stat-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.stat-badge strong { color: var(--text-primary); font-family: var(--font-mono); }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.8s linear infinite; }
