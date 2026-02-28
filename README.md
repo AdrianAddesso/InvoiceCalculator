@@ -1,144 +1,144 @@
-# InvoiceCalc — Calculadora de Días a Facturar
+# InvoiceCalc — Billing Days Calculator
 
-Herramienta para calcular los días y montos a facturar mensualmente, contemplando feriados argentinos, días de rest bonus, sick days y gastos de training con conversión automática ARS → USD.
+A tool for calculating billable days and amounts each month, accounting for Argentine public holidays, rest bonus days, sick days, and training expenses with automatic ARS → USD conversion.
 
 ---
 
 ## Stack
 
-| Capa | Tecnología |
+| Layer | Technology |
 |---|---|
 | Framework | Vue 3 (Options API) |
-| Estado global | Pinia |
-| Estilos | UnoCSS + CSS custom (base.css) |
+| State management | Pinia |
+| Styles | UnoCSS + custom CSS (base.css) |
 | HTTP | Axios |
 | Build | Vite 7 |
-| Fuente de feriados | nolaborables.com.ar (fallback: argentinadatos.com) |
-| Cotización USD | dolarapi.com (BCRA Oficial) |
+| Holiday data | nolaborables.com.ar (fallback: argentinadatos.com) |
+| USD exchange rate | dolarapi.com (BCRA Official) |
 
 ---
 
-## Estructura del proyecto
+## Project structure
 
 ```
 src/
 ├── assets/
-│   └── base.css              # Design system: variables, primitivos (.card, .btn, .inp, .chip…)
+│   └── base.css              # Design system: variables, primitives (.card, .btn, .inp, .chip…)
 ├── components/
-│   ├── Calculadora.vue        # Formulario de ingreso de datos
-│   └── Resultados.vue         # Tabla de resumen y nota de invoice
+│   ├── Calculadora.vue        # Input form
+│   └── Resultados.vue         # Summary table and invoice note
 ├── services/
-│   ├── diasLaborables.js      # Cuenta días L–V de un mes/año (sin deps externas)
-│   ├── feriados.js            # Obtiene feriados del mes vía API (con fallback)
-│   └── training.js            # Convierte ARS → USD con cotización BCRA (caché 10 min)
+│   ├── diasLaborables.js      # Counts Mon–Fri days in a given month/year (no external deps)
+│   ├── feriados.js            # Fetches public holidays via API (with automatic fallback)
+│   └── training.js            # Converts ARS → USD using BCRA rate (10-min in-memory cache)
 ├── stores/
-│   └── global.js              # Store Pinia con todo el estado y cálculos reactivos
+│   └── global.js              # Pinia store with all state and reactive calculations
 ├── App.vue                    # Shell: header, layout, footer
 └── main.js                    # Bootstrap: Pinia + UnoCSS + base.css
 ```
 
 ---
 
-## Instalación
+## Setup
 
 ```bash
 npm install
 npm run dev
 ```
 
-> Requiere Node `^20.19.0` o `>=22.12.0`
+> Requires Node `^20.19.0` or `>=22.12.0`
 
 ---
 
-## Lógica de cálculo
+## Calculation logic
 
-### Días laborables
-El servicio `diasLaborables.js` recorre todos los días del mes y cuenta los que caen en lunes a viernes (`getDay() !== 0 && !== 6`). No incluye lógica de feriados — ese descuento no aplica al conteo base.
+### Working days
+The `diasLaborables.js` service iterates over every day in the month and counts those falling Monday through Friday (`getDay() !== 0 && !== 6`). Public holidays are not excluded from this count — they are handled separately.
 
-### Fórmulas del store
+### Store formulas
 
 ```
-valorPorHora          = feeMensual / cantDiasLaborables
+valorPorHora (daily rate)  = feeMensual / cantDiasLaborables
 
-totDiasFee            = cantDiasLaborables − cantVacacionesRest − cantDiasSick
-totPrecioFee          = totDiasFee × valorPorHora
+totDiasFee                 = cantDiasLaborables − cantVacacionesRest − cantDiasSick
+totPrecioFee               = totDiasFee × valorPorHora
 
-precioVacacionesRest  = cantVacacionesRest × valorPorHora
-precioDiasSick        = cantDiasSick × valorPorHora
-precioFeriadosTrabajados = cantFeriadosTrabajados × valorPorHora
+precioVacacionesRest       = cantVacacionesRest × valorPorHora
+precioDiasSick             = cantDiasSick × valorPorHora
+precioFeriadosTrabajados   = cantFeriadosTrabajados × valorPorHora
 
-grandTotalDias        = totDiasFee + cantFeriadosTrabajados
-grandTotalPrecio      = totPrecioFee
-                      + precioVacacionesRest
-                      + precioDiasSick
-                      + precioFeriadosTrabajados
-                      + totalTrainingUSD
+grandTotalDias             = totDiasFee + cantFeriadosTrabajados
+grandTotalPrecio           = totPrecioFee
+                           + precioVacacionesRest
+                           + precioDiasSick
+                           + precioFeriadosTrabajados
+                           + totalTrainingUSD
 ```
 
 ### Training (ARS → USD)
-Llama a `dolarapi.com/v1/dolares/oficial` para obtener el tipo de cambio de **venta** publicado por el BCRA. La cotización se cachea en memoria durante **10 minutos** para no saturar la API. Cada item guarda el monto ARS, el equivalente en USD, el valor de venta usado y el timestamp exacto de la consulta en formato `dd/mm/aaaa hh:mm:ss`.
+Calls `dolarapi.com/v1/dolares/oficial` to fetch the **sell rate** published by the BCRA. The exchange rate is cached in memory for **10 minutes** to avoid hammering the API. Each item stores the ARS amount, its USD equivalent, the exchange rate used, and the exact query timestamp formatted as `dd/mm/yyyy hh:mm:ss`.
 
 ---
 
-## Servicios externos
+## External services
 
-### Feriados
-- **Primario:** `GET https://nolaborables.com.ar/api/v2/feriados/{año}`
-  Responde `[{ dia, mes, motivo, tipo, … }]`
-- **Fallback automático:** `GET https://api.argentinadatos.com/v1/feriados/{año}`
-  Responde `[{ fecha: "YYYY-MM-DD", descripcion, tipo, … }]` — se normaliza al mismo schema interno antes de usarse.
+### Public holidays
+- **Primary:** `GET https://nolaborables.com.ar/api/v2/feriados/{year}`
+  Returns `[{ dia, mes, motivo, tipo, … }]`
+- **Automatic fallback:** `GET https://api.argentinadatos.com/v1/feriados/{year}`
+  Returns `[{ fecha: "YYYY-MM-DD", descripcion, tipo, … }]` — normalized to the same internal schema before use.
 
-Si ambas fuentes fallan, se muestra un mensaje de error al usuario y la lista de feriados queda vacía (no bloquea el resto de la calculadora).
+If both sources fail, an error message is shown and the holiday list is left empty — the rest of the calculator continues to work normally.
 
-### Cotización BCRA
+### BCRA exchange rate
 - `GET https://dolarapi.com/v1/dolares/oficial`
-- Campo usado: `venta`
-- Sin autenticación requerida, CORS habilitado
+- Field used: `venta` (sell rate)
+- No authentication required, CORS enabled
 
 ---
 
-## Nota de invoice
+## Invoice note
 
-El componente `Resultados.vue` genera automáticamente un bloque de texto con el detalle completo del mes, listo para copiar y pegar en una invoice:
+`Resultados.vue` automatically generates a ready-to-copy text block with the full month breakdown:
 
 ```
-Febrero 2026 — Fee: USD 4.160,00 | Valor/día: USD 192,59
+February 2026 — Fee: USD 4,160.00 | Daily rate: USD 192.59
 
-Fee:  18 días × USD 192,59 = USD 3.466,67
-Rest: 1d [14/02] = USD 192,59
-Holiday Worked: 1d [24/02] = USD 192,59
+Fee:  18 days × USD 192.59 = USD 3,466.67
+Rest: 1d [14/02] = USD 192.59
+Holiday Worked: 1d [24/02] = USD 192.59
 
 Training (USD 45.23):
-• Curso React: ARS 50.000 = USD 45,23 (cotización venta BCRA: $1105 — 28/02/2026 10:14:32)
+• React Course: ARS 50,000 = USD 45.23 (BCRA sell rate: $1105 — 28/02/2026 10:14:32)
 
-TOTAL: 19 días = USD 3.897,08
+TOTAL: 19 days = USD 3,897.08
 ```
 
-Cada sección de la tabla también tiene su propio botón de copia individual (⎘).
+Each table row also has its own individual copy button (⎘).
 
 ---
 
 ## Design system
 
-Los estilos globales viven en `src/assets/base.css` e importan desde `main.js`. Usan CSS custom properties como sistema de tokens:
+Global styles live in `src/assets/base.css` and are imported from `main.js`. CSS custom properties serve as design tokens:
 
-| Token | Valor | Uso |
+| Token | Value | Role |
 |---|---|---|
-| `--bg` | `#111822` | Fondo principal (navy oscuro) |
-| `--bg-card` | `#18202e` | Superficie de cards |
-| `--border` | `#383331` | Bordes (charcoal cálido) |
-| `--text-primary` | `#f6dcb5` | Texto principal (cream) |
-| `--text-secondary` | `#c9a87c` | Texto secundario |
-| `--accent` | `#d85944` | Acento coral — CTAs y totales |
+| `--bg` | `#111822` | Main background (dark navy) |
+| `--bg-card` | `#18202e` | Card surface |
+| `--border` | `#383331` | Borders (warm charcoal) |
+| `--text-primary` | `#f6dcb5` | Primary text (warm cream) |
+| `--text-secondary` | `#c9a87c` | Secondary text |
+| `--accent` | `#d85944` | Coral accent — CTAs and totals |
 
-Tipografía: `Outfit` (UI) + `JetBrains Mono` (números y código) vía Google Fonts.
+Typography: `Outfit` (UI) + `JetBrains Mono` (numbers and code) via Google Fonts.
 
 ---
 
-## Scripts disponibles
+## Available scripts
 
 ```bash
-npm run dev      # servidor de desarrollo con HMR
-npm run build    # build de producción
-npm run preview  # previsualizar el build
+npm run dev      # development server with HMR
+npm run build    # production build
+npm run preview  # preview the production build
 ```
